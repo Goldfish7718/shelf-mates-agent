@@ -1,15 +1,21 @@
-from openrouter import OpenRouter
-from dotenv import load_dotenv
+from openai import OpenAI
 from tools import product, cart, address, order
-import os
 import json
-
-load_dotenv()
 
 messages = [
     {
         "role": "system",
-        "content": "You are an e-commerce grocery app assistant."
+        "content": """
+            You are an e-commerce grocery assistant.
+            
+            IMPORTANT:
+            - Never guess cart contents.
+            - Never guess available products.
+            - Never guess addresses.
+            - When information is available through a tool, ALWAYS call the appropriate tool.
+
+            Do not answer from memory.
+            """
     }
 ]
 
@@ -69,53 +75,51 @@ def main():
                 "content": prompt
             })
 
-            with OpenRouter(api_key=os.getenv("OPENROUTER_API_KEY")) as client:
+            client = OpenAI(
+                base_url="http://localhost:11434/v1",
+                api_key="ollama"
+            )
 
-                for _ in range(MAX_AGENT_STEPS):
-                    response = client.chat.send(
-                        # model="openai/gpt-oss-120b:free",
-                        # model="z-ai/glm-4.5-air:free",
-                        models=["openai/gpt-oss-120b:free", "z-ai/glm-4.5-air:free"],
-                        messages=messages,
-                        tools=tools_interface,
-                        retries=2
-                    )
+            for _ in range(MAX_AGENT_STEPS):
+                response = client.chat.completions.create(
+                    model="qwen2.5:3b",
+                    messages=messages,
+                    tools=tools_interface
+                )
 
-                    print("Model used for completion:", response.model)
-                    message = response.choices[0].message
-                    messages.append(message)
+                print("Model used for completion:", response.model)
+                message = response.choices[0].message
+                messages.append(message)
 
-                    # Final answer reached
-                    if not message.tool_calls:
-                        print("\nCHATBOT:", message.content, "\n")
-                        break
+                # Final answer reached
+                if not message.tool_calls:
+                    print("\nCHATBOT:", message.content, "\n")
+                    break
 
-                    # Execute all tool calls
-                    for tool_call in message.tool_calls:
+                # Execute all tool calls
+                for tool_call in message.tool_calls:
 
-                        tool_name = tool_call.function.name
-                        print(f"\n[TOOL] {tool_name}")
+                    tool_name = tool_call.function.name
+                    print(f"\n[TOOL] {tool_name}")
 
-                        tool_args = json.loads(tool_call.function.arguments)
+                    tool_args = json.loads(tool_call.function.arguments)
+                    print("ARGS:", tool_args)
 
-                        print("ARGS:", tool_args)
+                    tool_response = TOOL_MAPPING[tool_name](**tool_args)
+                    print("RESULT:", tool_response)
 
-                        tool_response = TOOL_MAPPING[tool_name](**tool_args)
+                    messages.append({
+                        "role": "tool",
+                        "tool_call_id": tool_call.id,
+                        "content": json.dumps(tool_response)
+                    })
 
-                        print("RESULT:", tool_response)
-
-                        messages.append({
-                            "role": "tool",
-                            "tool_call_id": tool_call.id,
-                            "content": json.dumps(tool_response)
-                        })
-
-                else:
-                    print(
-                        f"\nAgent stopped after "
-                        f"{MAX_AGENT_STEPS} steps "
-                        f"(possible infinite loop).\n"
-                    )
+            else:
+                print(
+                    f"\nAgent stopped after "
+                    f"{MAX_AGENT_STEPS} steps "
+                    f"(possible infinite loop).\n"
+                )
 
     except Exception as e:
         print(f"\nERROR: {e}\n")

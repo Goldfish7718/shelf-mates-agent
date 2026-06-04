@@ -1,8 +1,7 @@
 import requests
-import os
 from config import API_URL, cookies
-from openrouter import OpenRouter
 import json
+from openai import OpenAI
 
 def get_product_detail(product_name):
     print("Fetching products...\n")
@@ -25,13 +24,18 @@ def get_product_detail(product_name):
     ]
 
     print("Extracting ID...\n")
-    with OpenRouter(api_key=os.getenv("OPENROUTER_API_KEY")) as client:
-        response = client.chat.send(
-            models=["openai/gpt-oss-120b:free", "z-ai/glm-4.5-air:free"],
-            messages = messages,
-        )
 
-        product_id = response.choices[0].message.content
+    client = OpenAI(
+        base_url="http://localhost:11434/v1",
+        api_key="ollama"
+    )
+
+    response = client.chat.completions.create(
+        model="qwen2.5:3b",
+        messages=messages,
+    )
+
+    product_id = response.choices[0].message.content
     
     url = f"{API_URL}/products/getProduct/{product_id}"
     response = requests.get(url, cookies=cookies)

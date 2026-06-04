@@ -1,8 +1,8 @@
 import requests
-from openrouter import OpenRouter
 import ast
 from config import API_URL, cookies
 import os
+from openai import OpenAI
 
 def add_to_cart(products = []):
     print("Fetching products...\n")
@@ -26,13 +26,18 @@ def add_to_cart(products = []):
     ]
 
     print("Extracting IDs...\n")
-    with OpenRouter(api_key=os.getenv("OPENROUTER_API_KEY")) as client:
-        response = client.chat.send(
-            models=["openai/gpt-oss-120b:free", "z-ai/glm-4.5-air:free"],
-            messages = messages,
-        )
 
-        product_IDs = ast.literal_eval(response.choices[0].message.content)
+    client = OpenAI(
+        base_url="http://localhost:11434/v1",
+        api_key="ollama"
+    )
+
+    response = client.chat.completions.create(
+        model="qwen2.5:3b",
+        messages=messages,
+    )
+
+    product_IDs = ast.literal_eval(response.choices[0].message.content)
 
     final_products = [
         {
