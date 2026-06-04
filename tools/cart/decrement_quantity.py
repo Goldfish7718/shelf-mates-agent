@@ -1,7 +1,7 @@
 import os
 import requests
 import ast
-from config import API_URL, cookies
+from config import API_URL, cookies, MODEL
 from openai import OpenAI
 
 def decrement_quantity(products):
@@ -33,7 +33,7 @@ def decrement_quantity(products):
     )
 
     response = client.chat.completions.create(
-        model="qwen2.5:3b",
+        model=MODEL,
         messages=messages,
     )
 

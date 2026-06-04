@@ -1,5 +1,5 @@
 import requests
-from config import API_URL, cookies
+from config import API_URL, cookies, MODEL
 import json
 from openai import OpenAI
 
@@ -31,7 +31,7 @@ def get_product_detail(product_name):
     )
 
     response = client.chat.completions.create(
-        model="qwen2.5:3b",
+        model=MODEL,
         messages=messages,
     )
 

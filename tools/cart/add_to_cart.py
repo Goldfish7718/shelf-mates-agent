@@ -1,6 +1,6 @@
 import requests
 import ast
-from config import API_URL, cookies
+from config import API_URL, cookies, MODEL
 import os
 from openai import OpenAI
 
@@ -33,7 +33,7 @@ def add_to_cart(products = []):
     )
 
     response = client.chat.completions.create(
-        model="qwen2.5:3b",
+        model=MODEL,
         messages=messages,
     )
 

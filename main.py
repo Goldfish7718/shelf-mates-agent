@@ -1,6 +1,7 @@
 from openai import OpenAI
 from tools import product, cart, address, order
 import json
+from config import MODEL
 
 messages = [
     {
@@ -82,7 +83,7 @@ def main():
 
             for _ in range(MAX_AGENT_STEPS):
                 response = client.chat.completions.create(
-                    model="qwen2.5:3b",
+                    model=MODEL,
                     messages=messages,
                     tools=tools_interface
                 )
