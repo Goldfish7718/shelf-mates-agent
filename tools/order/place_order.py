@@ -25,7 +25,7 @@ def place_order(payment_method, address_id):
         response = response.json()
 
         final_response = {
-            "message": f"{response['message']} Total: INR {response['orderObject']['Subtotal']}"
+            "message": f"{response['message']} Total: INR {response['orderObject']['subtotal']}"
         }
 
         return final_response["message"]

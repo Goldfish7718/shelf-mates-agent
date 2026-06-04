@@ -1,7 +1,7 @@
 import requests
 from openrouter import OpenRouter
 import ast
-from config import API_URL, cookies
+from config import API_URL, cookies, MODELS
 import os
 
 def add_to_cart(products = []):
@@ -28,7 +28,7 @@ def add_to_cart(products = []):
     print("Extracting IDs...\n")
     with OpenRouter(api_key=os.getenv("OPENROUTER_API_KEY")) as client:
         response = client.chat.send(
-            models=["openai/gpt-oss-120b:free", "z-ai/glm-4.5-air:free"],
+            models=MODELS,
             messages = messages,
         )
 
@@ -37,7 +37,7 @@ def add_to_cart(products = []):
     final_products = [
         {
             "product_id": product_id,
-            "quantity": int(product["quantity"])
+            "quantity": product["quantity"]
         }
 
         for product, product_id in zip(products, product_IDs)
@@ -74,7 +74,7 @@ add_to_cart_interface = {
                                 "description": "Name of the product."
                             },
                             "quantity": {
-                                "type": "string",
+                                "type": "integer",
                                 "description": "Quantity of the product to add."
                             }
                         },

@@ -1,6 +1,7 @@
 from openrouter import OpenRouter
 from dotenv import load_dotenv
 from tools import product, cart, address, order
+from config import MODELS
 import os
 import json
 
@@ -75,7 +76,7 @@ def main():
                     response = client.chat.send(
                         # model="openai/gpt-oss-120b:free",
                         # model="z-ai/glm-4.5-air:free",
-                        models=["openai/gpt-oss-120b:free", "z-ai/glm-4.5-air:free"],
+                        models=MODELS,
                         messages=messages,
                         tools=tools_interface,
                         retries=2

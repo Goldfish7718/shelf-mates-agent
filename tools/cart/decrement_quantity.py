@@ -2,7 +2,7 @@ import os
 import requests
 import ast
 from openrouter import OpenRouter
-from config import API_URL, cookies
+from config import API_URL, cookies, MODELS
 
 def decrement_quantity(products):
     print("Fetching products...\n")
@@ -28,7 +28,7 @@ def decrement_quantity(products):
     print("Extracting IDs...\n")
     with OpenRouter(api_key=os.getenv("OPENROUTER_API_KEY")) as client:
         response = client.chat.send(
-            models=["openai/gpt-oss-120b:free", "z-ai/glm-4.5-air:free"],
+            models=MODELS,
             messages = messages
         )
 
@@ -37,7 +37,7 @@ def decrement_quantity(products):
     final_products = [
         {
             "_id": product_id,
-            "quantity": int(product["quantity"])
+            "quantity": product["quantity"]
         }
 
         for product, product_id in zip(products, product_IDs)
@@ -76,7 +76,7 @@ decrement_quantity_interface = {
                                 "description": "Name of the product to remove"
                             },
                             "quantity": {
-                                "type": "string",
+                                "type": "integer",
                                 "description": "Amount by which to decrease the quantity."
                             }
                         },

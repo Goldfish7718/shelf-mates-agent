@@ -1,6 +1,6 @@
 import requests
 import os
-from config import API_URL, cookies
+from config import API_URL, cookies, MODELS
 from openrouter import OpenRouter
 import json
 
@@ -27,7 +27,7 @@ def get_product_detail(product_name):
     print("Extracting ID...\n")
     with OpenRouter(api_key=os.getenv("OPENROUTER_API_KEY")) as client:
         response = client.chat.send(
-            models=["openai/gpt-oss-120b:free", "z-ai/glm-4.5-air:free"],
+            models=MODELS,
             messages = messages,
         )
 

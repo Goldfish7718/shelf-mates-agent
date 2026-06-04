@@ -36,13 +36,14 @@ get_by_category_interface = {
     "type": "function",
     "function": {
         "name": "get_products_by_category",
-        "description": "Fetch products from API based on category name",
+        "description": "Fetch products from API based on category name. Use this ONLY when user asks or requests to view products from one or more categories.",
         "parameters": {
             "type": "object",
             "properties": {
                 "category": {
                     "type": "string",
-                    "description": "Category name used to fetch products from the API. Elgible categories are fruits, millets, vegetables, spices ONLY."
+                    "description": "Category name used to fetch products from the API. Elgible categories are fruits, millets, vegetables, spices ONLY.",
+                    "enum": ["fruits, vegetables, millets, spices"]
                 }
             },
             "required": ["category"]
