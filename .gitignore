@@ -1,3 +1,5 @@
 .env
 debug_messages.json
 env
+__pycache__/
+*.py[cod]
