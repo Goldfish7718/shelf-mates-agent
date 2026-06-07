@@ -1,16 +1,23 @@
-from openrouter import OpenRouter
-from dotenv import load_dotenv
+from openai import OpenAI
 from tools import product, cart, address, order
 from config import MODELS
 import os
 import json
 
-load_dotenv()
-
 messages = [
     {
         "role": "system",
-        "content": "You are an e-commerce grocery app assistant."
+        "content": """
+            You are an e-commerce grocery assistant.
+            
+            IMPORTANT:
+            - Never guess cart contents.
+            - Never guess available products.
+            - Never guess addresses.
+            - When information is available through a tool, ALWAYS call the appropriate tool.
+
+            Do not answer from memory.
+            """
     }
 ]
 
@@ -86,37 +93,46 @@ def main():
                     message = response.choices[0].message
                     messages.append(message)
 
-                    # Final answer reached
-                    if not message.tool_calls:
-                        print("\nCHATBOT:", message.content, "\n")
-                        break
+            for _ in range(MAX_AGENT_STEPS):
+                response = client.chat.completions.create(
+                    model=MODEL,
+                    messages=messages,
+                    tools=tools_interface
+                )
 
-                    # Execute all tool calls
-                    for tool_call in message.tool_calls:
+                print("Model used for completion:", response.model)
+                message = response.choices[0].message
+                messages.append(message)
 
-                        tool_name = tool_call.function.name
-                        print(f"\n[TOOL] {tool_name}")
+                # Final answer reached
+                if not message.tool_calls:
+                    print("\nCHATBOT:", message.content, "\n")
+                    break
 
-                        tool_args = json.loads(tool_call.function.arguments)
+                # Execute all tool calls
+                for tool_call in message.tool_calls:
 
-                        print("ARGS:", tool_args)
+                    tool_name = tool_call.function.name
+                    print(f"\n[TOOL] {tool_name}")
 
-                        tool_response = TOOL_MAPPING[tool_name](**tool_args)
+                    tool_args = json.loads(tool_call.function.arguments)
+                    print("ARGS:", tool_args)
 
-                        print("RESULT:", tool_response)
+                    tool_response = TOOL_MAPPING[tool_name](**tool_args)
+                    print("RESULT:", tool_response)
 
-                        messages.append({
-                            "role": "tool",
-                            "tool_call_id": tool_call.id,
-                            "content": json.dumps(tool_response)
-                        })
+                    messages.append({
+                        "role": "tool",
+                        "tool_call_id": tool_call.id,
+                        "content": json.dumps(tool_response)
+                    })
 
-                else:
-                    print(
-                        f"\nAgent stopped after "
-                        f"{MAX_AGENT_STEPS} steps "
-                        f"(possible infinite loop).\n"
-                    )
+            else:
+                print(
+                    f"\nAgent stopped after "
+                    f"{MAX_AGENT_STEPS} steps "
+                    f"(possible infinite loop).\n"
+                )
 
     except Exception as e:
         print(f"\nERROR: {e}\n")

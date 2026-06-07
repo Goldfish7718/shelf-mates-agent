@@ -31,7 +31,8 @@ def get_product_detail(product_name):
             messages = messages,
         )
 
-        product_id = response.choices[0].message.content
+
+    product_id = response.choices[0].message.content
     
     url = f"{API_URL}/products/getProduct/{product_id}"
     response = requests.get(url, cookies=cookies)

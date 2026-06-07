@@ -1,43 +1,20 @@
 import os
 import requests
-import ast
+from utils import find_product_id
 from openrouter import OpenRouter
 from config import API_URL, cookies, MODELS
 
 def decrement_quantity(products):
-    print("Fetching products...\n")
-    products_url = f"{API_URL}/products/all"
+    for product in products:
+        product_IDs = []
 
-    response = requests.get(products_url, cookies=cookies)
-    response.raise_for_status()
-
-    products_data = response.json()
-    product_names = [product["name"] for product in products]
-
-    messages = [
-        {
-            "role": "system",
-            "content": f"You are given the following product names {product_names} and the database containing the IDs of all products. Return the corresponding IDs of the product names given to you in a python list format WITHOUT attaching bactics or any extra characters. EXAMPLE RESPONSE: ['65300858022e0de3fd4a4814', '65a575190359a6c5cb58737a']"
-        },
-        {
-            "role": "user",
-            "content": str(products_data)
-        }
-    ]
-
-    print("Extracting IDs...\n")
-    with OpenRouter(api_key=os.getenv("OPENROUTER_API_KEY")) as client:
-        response = client.chat.send(
-            models=MODELS,
-            messages = messages
-        )
-
-        product_IDs = ast.literal_eval(response.choices[0].message.content)
+        product_id = find_product_id(product["name"])
+        product_IDs.append(product_id)
 
     final_products = [
         {
-            "_id": product_id,
-            "quantity": product["quantity"]
+            "product_id": product_id,
+            "quantity": int(product["quantity"])
         }
 
         for product, product_id in zip(products, product_IDs)
@@ -53,7 +30,6 @@ def decrement_quantity(products):
             response = requests.post(url, cookies=cookies, json=payload)
 
             data = response.json()
-            print(data["message"])
 
     return data["message"]
 
