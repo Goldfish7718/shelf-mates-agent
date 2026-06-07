@@ -1,13 +1,11 @@
-import os
 import requests
 from utils import find_product_id
-from openrouter import OpenRouter
-from config import API_URL, cookies, MODELS
+from config import API_URL, cookies
 
 def decrement_quantity(products):
-    for product in products:
-        product_IDs = []
+    product_IDs = []
 
+    for product in products:
         product_id = find_product_id(product["name"])
         product_IDs.append(product_id)
 
@@ -26,7 +24,7 @@ def decrement_quantity(products):
 
     for product in final_products:
         for _ in range(0, int(product["quantity"])):
-            url = f"{os.getenv('API_URL')}/cart/decrement/{product['_id']}"
+            url = f"{API_URL}/cart/decrement/{product['_id']}"
             response = requests.post(url, cookies=cookies, json=payload)
 
             data = response.json()

@@ -1,5 +1,5 @@
 import requests
-from config import API_URL, cookies, MODELS
+from config import API_URL, cookies
 import json
 from utils import find_product_id
 

@@ -3,9 +3,9 @@ from config import API_URL, cookies
 from utils import find_product_id
 
 def add_to_cart(products):
-    for product in products:
-        product_IDs = []
+    product_IDs = []
 
+    for product in products:
         product_id = find_product_id(product["name"])
         product_IDs.append(product_id)
 
