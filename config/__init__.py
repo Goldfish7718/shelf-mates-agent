@@ -8,4 +8,4 @@ cookies = {
     "token": os.getenv("JWT_TOKEN")
 }
 
-MODEL = "qwen2.5:1.5b"
+MODELS = ["openai/gpt-oss-120b:free", "z-ai/glm-4.5-air:free"]

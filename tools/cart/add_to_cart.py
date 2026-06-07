@@ -1,6 +1,6 @@
 import requests
-from config import cookies
-import os
+from openrouter import OpenRouter
+from config import API_URL, cookies, MODELS
 from utils import find_product_id
 
 def add_to_cart(products):
@@ -13,7 +13,7 @@ def add_to_cart(products):
     final_products = [
         {
             "product_id": product_id,
-            "quantity": int(product["quantity"])
+            "quantity": product["quantity"]
         }
 
         for product, product_id in zip(products, product_IDs)
@@ -22,7 +22,7 @@ def add_to_cart(products):
     print("Adding to Cart...\n")
     for product in final_products:
         for _ in range(0, product["quantity"]):
-            add_to_cart_url = f"{os.getenv('API_URL')}/cart/add/{product['product_id']}"
+            add_to_cart_url = f"{API_URL}/cart/add/{product['product_id']}"
 
             response = requests.post(add_to_cart_url, cookies=cookies)
             response.raise_for_status()
@@ -50,7 +50,7 @@ add_to_cart_interface = {
                                 "description": "Name of the product."
                             },
                             "quantity": {
-                                "type": "string",
+                                "type": "integer",
                                 "description": "Quantity of the product to add."
                             }
                         },

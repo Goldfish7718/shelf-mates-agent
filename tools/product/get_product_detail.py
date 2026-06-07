@@ -1,7 +1,8 @@
 import requests
-from config import API_URL, cookies, MODEL
+import os
+from config import API_URL, cookies, MODELS
+from openrouter import OpenRouter
 import json
-from openai import OpenAI
 
 def get_product_detail(product_name):
     print("Fetching products...\n")
@@ -24,16 +25,12 @@ def get_product_detail(product_name):
     ]
 
     print("Extracting ID...\n")
+    with OpenRouter(api_key=os.getenv("OPENROUTER_API_KEY")) as client:
+        response = client.chat.send(
+            models=MODELS,
+            messages = messages,
+        )
 
-    client = OpenAI(
-        base_url="http://localhost:11434/v1",
-        api_key="ollama"
-    )
-
-    response = client.chat.completions.create(
-        model=MODEL,
-        messages=messages,
-    )
 
     product_id = response.choices[0].message.content
     

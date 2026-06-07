@@ -1,7 +1,8 @@
 import os
 import requests
-from config import cookies
 from utils import find_product_id
+from openrouter import OpenRouter
+from config import API_URL, cookies, MODELS
 
 def decrement_quantity(products):
     for product in products:
@@ -51,7 +52,7 @@ decrement_quantity_interface = {
                                 "description": "Name of the product to remove"
                             },
                             "quantity": {
-                                "type": "string",
+                                "type": "integer",
                                 "description": "Amount by which to decrease the quantity."
                             }
                         },

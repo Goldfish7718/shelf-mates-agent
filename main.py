@@ -1,7 +1,8 @@
 from openai import OpenAI
 from tools import product, cart, address, order
+from config import MODELS
+import os
 import json
-from config import MODEL
 
 messages = [
     {
@@ -76,10 +77,21 @@ def main():
                 "content": prompt
             })
 
-            client = OpenAI(
-                base_url="http://localhost:11434/v1",
-                api_key="ollama"
-            )
+            with OpenRouter(api_key=os.getenv("OPENROUTER_API_KEY")) as client:
+
+                for _ in range(MAX_AGENT_STEPS):
+                    response = client.chat.send(
+                        # model="openai/gpt-oss-120b:free",
+                        # model="z-ai/glm-4.5-air:free",
+                        models=MODELS,
+                        messages=messages,
+                        tools=tools_interface,
+                        retries=2
+                    )
+
+                    print("Model used for completion:", response.model)
+                    message = response.choices[0].message
+                    messages.append(message)
 
             for _ in range(MAX_AGENT_STEPS):
                 response = client.chat.completions.create(
