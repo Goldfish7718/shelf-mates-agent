@@ -1,38 +1,10 @@
 import requests
-import os
 from config import API_URL, cookies, MODELS
-from openrouter import OpenRouter
 import json
+from utils import find_product_id
 
 def get_product_detail(product_name):
-    print("Fetching products...\n")
-    products_url = f"{API_URL}/products/all"
-
-    response = requests.get(products_url, cookies=cookies)
-    response.raise_for_status()
-
-    products_data = response.json()
-
-    messages = [
-        {
-            "role": "system",
-            "content": f"You are given the following product name {product_name} and the database containing the IDs of all products. Return the corresponding ID of the product name given to you WITHOUT attaching bactics or any extra characters. EXAMPLE RESPONSE: 65300858022e0de3fd4a4814"
-        },
-        {
-            "role": "user",
-            "content": str(products_data)
-        }
-    ]
-
-    print("Extracting ID...\n")
-    with OpenRouter(api_key=os.getenv("OPENROUTER_API_KEY")) as client:
-        response = client.chat.send(
-            models=MODELS,
-            messages = messages,
-        )
-
-
-    product_id = response.choices[0].message.content
+    product_id = find_product_id(product_name)
     
     url = f"{API_URL}/products/getProduct/{product_id}"
     response = requests.get(url, cookies=cookies)

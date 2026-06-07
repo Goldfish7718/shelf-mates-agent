@@ -1,6 +1,5 @@
 import requests
-from openrouter import OpenRouter
-from config import API_URL, cookies, MODELS
+from config import API_URL, cookies
 from utils import find_product_id
 
 def add_to_cart(products):

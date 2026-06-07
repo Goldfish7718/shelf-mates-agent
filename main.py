@@ -1,4 +1,4 @@
-from openai import OpenAI
+from openrouter import OpenRouter
 from tools import product, cart, address, order
 from config import MODELS
 import os
@@ -9,14 +9,7 @@ messages = [
         "role": "system",
         "content": """
             You are an e-commerce grocery assistant.
-            
-            IMPORTANT:
-            - Never guess cart contents.
-            - Never guess available products.
-            - Never guess addresses.
-            - When information is available through a tool, ALWAYS call the appropriate tool.
-
-            Do not answer from memory.
+            Your name is Shelf-mates AI.
             """
     }
 ]
@@ -81,8 +74,6 @@ def main():
 
                 for _ in range(MAX_AGENT_STEPS):
                     response = client.chat.send(
-                        # model="openai/gpt-oss-120b:free",
-                        # model="z-ai/glm-4.5-air:free",
                         models=MODELS,
                         messages=messages,
                         tools=tools_interface,
@@ -93,46 +84,34 @@ def main():
                     message = response.choices[0].message
                     messages.append(message)
 
-            for _ in range(MAX_AGENT_STEPS):
-                response = client.chat.completions.create(
-                    model=MODEL,
-                    messages=messages,
-                    tools=tools_interface
-                )
+                    # Final answer reached
+                    if not message.tool_calls:
+                        print("\nCHATBOT:", message.content, "\n")
+                        break
 
-                print("Model used for completion:", response.model)
-                message = response.choices[0].message
-                messages.append(message)
+                    # Execute all tool calls
+                    for tool_call in message.tool_calls:
+                        tool_name = tool_call.function.name
+                        print(f"\n[TOOL] {tool_name}")
 
-                # Final answer reached
-                if not message.tool_calls:
-                    print("\nCHATBOT:", message.content, "\n")
-                    break
+                        tool_args = json.loads(tool_call.function.arguments)
+                        print("ARGS:", tool_args)
 
-                # Execute all tool calls
-                for tool_call in message.tool_calls:
+                        tool_response = TOOL_MAPPING[tool_name](**tool_args)
+                        print("RESULT:", tool_response)
 
-                    tool_name = tool_call.function.name
-                    print(f"\n[TOOL] {tool_name}")
+                        messages.append({
+                            "role": "tool",
+                            "tool_call_id": tool_call.id,
+                            "content": json.dumps(tool_response)
+                        })
 
-                    tool_args = json.loads(tool_call.function.arguments)
-                    print("ARGS:", tool_args)
-
-                    tool_response = TOOL_MAPPING[tool_name](**tool_args)
-                    print("RESULT:", tool_response)
-
-                    messages.append({
-                        "role": "tool",
-                        "tool_call_id": tool_call.id,
-                        "content": json.dumps(tool_response)
-                    })
-
-            else:
-                print(
-                    f"\nAgent stopped after "
-                    f"{MAX_AGENT_STEPS} steps "
-                    f"(possible infinite loop).\n"
-                )
+                else:
+                    print(
+                        f"\nAgent stopped after "
+                        f"{MAX_AGENT_STEPS} steps "
+                        f"(possible infinite loop).\n"
+                    )
 
     except Exception as e:
         print(f"\nERROR: {e}\n")
@@ -155,14 +134,7 @@ def main():
                 default=str
             )
 
-        print(
-            "\nMESSAGE HISTORY:\n\n",
-            json.dumps(
-                formatted_messages,
-                indent=4,
-                default=str
-            )
-        )
+        print("\nMESSAGE HISTORY:\n\n", json.dumps(formatted_messages, indent=4, default=str))
 
 
 if __name__ == "__main__":
