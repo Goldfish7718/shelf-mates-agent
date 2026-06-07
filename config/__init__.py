@@ -8,4 +8,4 @@ cookies = {
     "token": os.getenv("JWT_TOKEN")
 }
 
-MODEL = "qwen2.5:0.5b"
+MODEL = "qwen2.5:1.5b"
