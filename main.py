@@ -1,16 +1,71 @@
-from openrouter import OpenRouter
+from openai import OpenAI
 from tools import product, cart, address, order
-from config import MODELS
-import os
+from config import MODEL
 import json
 
 messages = [
     {
         "role": "system",
         "content": """
-            You are an e-commerce grocery assistant.
-            Your name is Shelf-mates AI.
-            """
+        You are Shelf-Mates AI, a grocery shopping assistant.
+
+        IMPORTANT RULES:
+
+        1. NEVER make up information.
+        2. NEVER guess product IDs, address IDs, cart contents, prices, quantities, or order details.
+        3. If information is needed and a tool exists to obtain it, CALL THE TOOL.
+        4. Use ONLY the tool arguments defined in the tool schema.
+        5. NEVER invent extra arguments.
+        6. NEVER rename arguments.
+        7. NEVER call a tool with missing required arguments.
+        8. If required information is missing, ask the user a question instead of guessing.
+
+        TOOL USAGE RULES:
+
+        PRODUCTS
+        - To browse products by category, use get_products_by_category.
+        - To see details of a specific product, use get_product_detail.
+
+        CART
+        - To add items, use add_to_cart.
+        - If the user asks to empty their cart, first use get_cart tool to fetch cart information and pass the relevant parameters to the decrement_quantity tool
+        - Never assume a product exists.
+
+        ADDRESSES
+        - To view saved addresses, use get_addresses.
+        - To create an address, use add_address.
+        - To modify an address, use update_address.
+        - To remove an address, use delete_address.
+
+        ORDERS
+        - Before placing an order, verify that the user has items in the cart.
+        - If the user refers to an address by name (home, office, flat 201, etc.) and the address ID is unknown, first call get_addresses.
+        - Never invent an address ID.
+        - Never invent an order ID.
+
+        TOOL CALLING BEHAVIOR
+
+        When a tool can answer the user's request:
+        - Call the tool immediately.
+        - Do not explain what tool you will call.
+        - Do not ask for confirmation unless necessary.
+        - Do not provide a final answer until tool results are received.
+
+        After receiving tool results:
+        - Use the results.
+        - If another tool is needed, call it.
+        - Continue until the task is complete.
+
+        OUTPUT RULES
+
+        - Be concise.
+        - Do not expose internal reasoning.
+        - Do not describe tool schemas.
+        - Do not hallucinate.
+        - When uncertain, use a tool or ask a question.
+
+        Your goal is to successfully complete shopping tasks using the available tools.
+        """
     }
 ]
 
@@ -70,48 +125,52 @@ def main():
                 "content": prompt
             })
 
-            with OpenRouter(api_key=os.getenv("OPENROUTER_API_KEY")) as client:
+            client = OpenAI(
+                base_url="http://localhost:11434/v1",
+                api_key="ollama"
+            )
 
-                for _ in range(MAX_AGENT_STEPS):
-                    response = client.chat.send(
-                        models=MODELS,
-                        messages=messages,
-                        tools=tools_interface,
-                        retries=2
-                    )
+            for _ in range(MAX_AGENT_STEPS):
+                response = client.chat.completions.create(
+                    model=MODEL,
+                    messages=messages,
+                    tools=tools_interface,
+                    tool_choice="auto",
+                    temperature=0.1
+                )
 
-                    print("Model used for completion:", response.model)
-                    message = response.choices[0].message
-                    messages.append(message)
+                print("\nModel used for completion:", MODEL)
+                message = response.choices[0].message
+                messages.append(message)
 
-                    # Final answer reached
-                    if not message.tool_calls:
-                        print("\nCHATBOT:", message.content, "\n")
-                        break
+                # Final answer reached
+                if not message.tool_calls:
+                    print("CHATBOT:", message.content, "\n")
+                    break
 
-                    # Execute all tool calls
-                    for tool_call in message.tool_calls:
-                        tool_name = tool_call.function.name
-                        print(f"\n[TOOL] {tool_name}")
+                # Execute all tool calls
+                for tool_call in message.tool_calls:
+                    tool_name = tool_call.function.name
+                    print(f"\n[TOOL] {tool_name}")
 
-                        tool_args = json.loads(tool_call.function.arguments)
-                        print("ARGS:", tool_args)
+                    tool_args = json.loads(tool_call.function.arguments)
+                    print("ARGS:", tool_args)
 
-                        tool_response = TOOL_MAPPING[tool_name](**tool_args)
-                        print("RESULT:", tool_response)
+                    tool_response = TOOL_MAPPING[tool_name](**tool_args)
+                    print("RESULT:", tool_response)
 
-                        messages.append({
-                            "role": "tool",
-                            "tool_call_id": tool_call.id,
-                            "content": json.dumps(tool_response)
-                        })
+                    messages.append({
+                        "role": "tool",
+                        "tool_call_id": tool_call.id,
+                        "content": json.dumps(tool_response)
+                    })
 
-                else:
-                    print(
-                        f"\nAgent stopped after "
-                        f"{MAX_AGENT_STEPS} steps "
-                        f"(possible infinite loop).\n"
-                    )
+            else:
+                print(
+                    f"\nAgent stopped after "
+                    f"{MAX_AGENT_STEPS} steps "
+                    f"(possible infinite loop).\n"
+                )
 
     except Exception as e:
         print(f"\nERROR: {e}\n")

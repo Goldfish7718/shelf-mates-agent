@@ -2,7 +2,7 @@ from rapidfuzz import process, fuzz
 from config import API_URL, cookies
 import requests
 
-def find_product_id(query, threshold=70):
+def find_product_id(query, threshold=60):
     print("Fetching products...\n")
     products_url = f"{API_URL}/products/all"
 
@@ -24,12 +24,12 @@ def find_product_id(query, threshold=70):
     print(result)
 
     if result is None:
-        return None
+        return "No product Found"
 
-    matched_name, score, index = result
+    _, score, index = result
 
     if score < threshold:
-        return None
+        return "No product found in the database"
 
     print(products_data[index]["_id"])
     return products_data[index]["_id"]
