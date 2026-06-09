@@ -4,13 +4,21 @@ from urllib.parse import urlparse, parse_qs
 from utils import find_address_id
 
 def place_order(payment_method, address):
-    address_id = find_address_id(query=address)
+    response = find_address_id(query=address)
+
+    if not response["success"]:
+        return response["message"]
+    
+    address_id = response["message"]["_id"]
     checkout_url = f"{API_URL}/order/checkout"
 
     response_1 = requests.post(checkout_url, cookies=cookies, json={
         "paymentMethod": payment_method,
         "address": address_id
     })
+
+    if response_1.status_code != 200:
+        return response_1.json()["message"]
 
     response_1 = response_1.json()
 
@@ -22,7 +30,8 @@ def place_order(payment_method, address):
         confirm_url = f"{API_URL}/order/confirmorder/{encodedOrderDetails}"
         response = requests.post(confirm_url, cookies=cookies)
 
-        print("ORDER CONFIRMATION RESPONSE\n\n", response)
+        if response.status_code != 200:
+            return response.json()["message"]
         
         response = response.json()
 

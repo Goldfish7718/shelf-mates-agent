@@ -6,8 +6,12 @@ def add_to_cart(products):
     product_IDs = []
 
     for product in products:
-        product_id = find_product_id(product["name"])
-        product_IDs.append(product_id)
+        result = find_product_id(product["name"])
+
+        if not result["success"]:
+            return result["message"]
+
+        product_IDs.append(result["message"])
 
     final_products = [
         {
@@ -24,7 +28,6 @@ def add_to_cart(products):
             add_to_cart_url = f"{API_URL}/cart/add/{product['product_id']}"
 
             response = requests.post(add_to_cart_url, cookies=cookies)
-            response.raise_for_status()
 
             data = response.json()
 

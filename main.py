@@ -134,7 +134,7 @@ def main():
                 default=str
             )
 
-        print("\nMESSAGE HISTORY:\n\n", json.dumps(formatted_messages, indent=4, default=str))
+        print("\n**MESSAGE HISTORY DUMPED**\n\n")
 
 
 if __name__ == "__main__":

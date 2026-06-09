@@ -6,7 +6,9 @@ def get_cart():
     url = f"{API_URL}/cart/getCart"
 
     response = requests.get(url, cookies=cookies)
-    response.raise_for_status()
+    
+    if response.status_code != 200:
+                return response.json()["message"]
 
     data = response.json()
 

@@ -7,7 +7,12 @@ def find_product_id(query, threshold=60):
     products_url = f"{API_URL}/products/all"
 
     response = requests.get(products_url, cookies=cookies)
-    response.raise_for_status()
+
+    if response.status_code != 200:
+        return {
+            "success": False,
+            "message": response.json()["message"]
+        }
 
     products_data = response.json()["products"]
 
@@ -24,12 +29,21 @@ def find_product_id(query, threshold=60):
     print(result)
 
     if result is None:
-        return "No product Found"
+        return {
+            "success": False,
+            "message": "No product found"
+        }
 
     _, score, index = result
 
     if score < threshold:
-        return "No product found in the database"
+        return {
+            "success": False,
+            "message": "No product found in database"
+        }
 
     print(products_data[index]["_id"])
-    return products_data[index]["_id"]
+    return {
+        "success": True,
+        "message": products_data[index]["_id"]
+    }

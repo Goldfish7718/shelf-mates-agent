@@ -6,13 +6,17 @@ def decrement_quantity(products):
     product_IDs = []
 
     for product in products:
-        product_id = find_product_id(product["name"])
-        product_IDs.append(product_id)
+        result = find_product_id(product["name"])
+
+        if not result["success"]:
+            return result["message"]
+
+        product_IDs.append(result["message"])
 
     final_products = [
         {
             "product_id": product_id,
-            "quantity": int(product["quantity"])
+            "quantity": product["quantity"]
         }
 
         for product, product_id in zip(products, product_IDs)

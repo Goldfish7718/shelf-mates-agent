@@ -4,12 +4,18 @@ import json
 from utils import find_product_id
 
 def get_product_detail(product_name):
-    product_id = find_product_id(product_name)
+    response = find_product_id(product_name)
+
+    if not response["success"]:
+        return response["message"]
+    
+    product_id = response["message"]
     
     url = f"{API_URL}/products/getProduct/{product_id}"
     response = requests.get(url, cookies=cookies)
 
-    response.raise_for_status()
+    if response.status_code != 200:
+        return response.json()["message"]
 
     data = response.json()
 

@@ -7,6 +7,13 @@ def find_address_id(query, threshold=60):
     url = f"{API_URL}/address/getaddresses"
     response = requests.get(url, cookies=cookies)
 
+    if response.status_code != 200:
+        return {
+            "success": False,
+            "message": response.json()["message"]
+        }
+
+
     address_data = response.json()["addresses"]
 
     print("Extracting ID...")
@@ -35,12 +42,21 @@ def find_address_id(query, threshold=60):
     print(result)
 
     if result is None:
-        return "No product Found"
+        return {
+            "success": False,
+            "message": "No address found"
+        }
 
     _, score, index = result
 
     if score < threshold:
-        return "No product found in the database"
+        return {
+            "success": False,
+            "message": "No product found in database"
+        }
 
     print(address_data[index]["_id"])
-    return address_data[index]["_id"]
+    return {
+        "success": True,
+        "message": address_data[index]
+    }

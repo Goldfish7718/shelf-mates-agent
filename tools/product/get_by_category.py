@@ -6,7 +6,8 @@ def get_by_category(category="fruits"):
 
     response = requests.get(url, cookies=cookies)
 
-    response.raise_for_status()
+    if response.status_code != 200:
+        return response.json()["message"]
 
     data = response.json()
 
@@ -42,7 +43,7 @@ get_by_category_interface = {
             "properties": {
                 "category": {
                     "type": "string",
-                    "description": "Category name used to fetch products from the API. Elgible categories are fruits, millets, vegetables, spices ONLY.",
+                    "description": "Category of the products to fetch",
                     "enum": ["fruits, vegetables, millets, spices"]
                 }
             },
