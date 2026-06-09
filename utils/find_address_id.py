@@ -1,6 +1,7 @@
 import requests
 from config import API_URL, cookies
 from rapidfuzz import process, fuzz
+import re
 
 def find_address_id(query, threshold=60):
     url = f"{API_URL}/address/getaddresses"
@@ -22,6 +23,7 @@ def find_address_id(query, threshold=60):
             address["state"]
         ]).lower()
 
+        search_text = re.sub(r"[^\w\s]", "", search_text)
         search_strings.append(search_text)
 
     result = process.extractOne(
