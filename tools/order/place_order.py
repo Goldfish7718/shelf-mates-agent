@@ -1,8 +1,10 @@
 import requests
 from config import API_URL, cookies
 from urllib.parse import urlparse, parse_qs
+from utils import find_address_id
 
-def place_order(payment_method, address_id):
+def place_order(payment_method, address):
+    address_id = find_address_id(query=address)
     checkout_url = f"{API_URL}/order/checkout"
 
     response_1 = requests.post(checkout_url, cookies=cookies, json={
@@ -41,6 +43,8 @@ place_order_interface = {
             "Place an order using a selected payment method and delivery address. "
             "Use this when the user wants to checkout, place an order, buy the items "
             "in their cart, or complete a purchase."
+            "DO NOT use the get_addresses tool to fetch addresses. Just put whatever information you have about the address to be delivered on in the 'address' parameter. This tool will automatically resolve addresses."
+            "For example if the user says 'deliver it to my home' you will put 'home' as the address parameter. If the user says 'deliver it to my san fransisco address' you will put 'san fransisco' in the address parameter."
         ),
         "parameters": {
             "type": "object",
@@ -53,10 +57,10 @@ place_order_interface = {
                     ),
                     "enum": ["COD", "Card"]
                 },
-                "address_id": {
+                "address": {
                     "type": "string",
                     "description": (
-                        "The ID of the delivery address where the order should be shipped."
+                        "search query of the address the user provides as their delivery address."
                     )
                 }
             },

@@ -3,7 +3,7 @@ from tools.product import get_by_category, get_product_detail
 from tools.cart import add_to_cart, get_cart, decrement_quantity
 from tools.address import add_address, get_addresses, update_address, delete_address
 from tools.order import place_order
-from utils import find_product_id
+from utils import find_product_id, find_address_id
 
 load_dotenv()
 
@@ -20,6 +20,7 @@ message = \
 "9. delete_address\n" \
 "10. place_order\n" \
 "11. find_product_id\n" \
+"12. find_address_id\n" \
 
 selection = input(message)
 
@@ -60,5 +61,9 @@ match int(selection):
     case 11:
         query = input("Search query: ")
         find_product_id(query=query)
+
+    case 12:
+        query = input("Search query: ")
+        find_address_id(query=query)
 
 
