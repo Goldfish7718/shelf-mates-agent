@@ -1,9 +1,11 @@
 import os
+import json
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from typing import List, Optional, Dict, Any
-from agent import run_agent
+from agent import run_agent, run_agent_stream
 
 app = FastAPI(
     title="Shelf-mates AI API",
@@ -46,6 +48,20 @@ async def chat(request: ChatRequest):
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/chat/stream")
+async def chat_stream(request: ChatRequest):
+    def event_generator():
+        try:
+            stream = run_agent_stream(message=request.message, history=request.history)
+            for event in stream:
+                # Format chunk as a Server-Sent Event (SSE)
+                yield f"data: {json.dumps(event)}\n\n"
+        except Exception as e:
+            error_event = {"type": "error", "content": str(e)}
+            yield f"data: {json.dumps(error_event)}\n\n"
+
+    return StreamingResponse(event_generator(), media_type="text/event-stream")
 
 if __name__ == "__main__":
     import uvicorn
