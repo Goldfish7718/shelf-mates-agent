@@ -1,141 +1,54 @@
-from openrouter import OpenRouter
-from tools import product, cart, address, order
-from config import MODELS
 import os
-import json
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+from typing import List, Optional, Dict, Any
+from agent import run_agent
 
-messages = [
-    {
-        "role": "system",
-        "content": """
-            You are an e-commerce grocery assistant.
-            Your name is Shelf-mates AI.
-            """
+app = FastAPI(
+    title="Shelf-mates AI API",
+    description="API for the Shelf-mates AI e-commerce grocery assistant agent",
+    version="1.0.0"
+)
+
+# Enable CORS so other apps can consume this API
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Adjust in production as required
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+class ChatRequest(BaseModel):
+    message: str
+    history: Optional[List[Dict[str, Any]]] = None
+
+class ChatResponse(BaseModel):
+    response: str
+    history: List[Dict[str, Any]]
+
+@app.get("/")
+def read_root():
+    return {
+        "name": "Shelf-mates AI API",
+        "status": "healthy",
+        "description": "Send POST requests to /chat to interact with the grocery assistant agent."
     }
-]
 
-tools_interface = [
-    # PRODUCT OPS
-    product.get_by_category_interface,
-    product.get_product_detail_interface,
-
-    #CART OPS
-    cart.add_to_cart_interface,
-    cart.get_cart_interface,
-    cart.decrement_quantity_interface,
-
-    # ADDRESS OPS
-    address.add_address_interface,
-    address.get_addresses_interface,
-    address.update_address_interface,
-    address.delete_address_interface,
-
-    #ORDER OPS
-    order.place_order_interface
-]
-
-TOOL_MAPPING = {
-    # PRODUCTS
-    "get_products_by_category": product.get_by_category,
-    "get_product_detail": product.get_product_detail,
-    
-    # CART
-    "add_to_cart": cart.add_to_cart,
-    "get_cart": cart.get_cart,
-    "decrement_quantity": cart.decrement_quantity,
-
-    # ADDRESS
-    "add_address": address.add_address,
-    "get_addresses": address.get_addresses,
-    "update_address": address.update_address,
-    "delete_address": address.delete_address,
-
-    #ORDER OPS
-    "place_order": order.place_order
-}
-
-MAX_AGENT_STEPS = 20
-
-def main():
+@app.post("/chat", response_model=ChatResponse)
+async def chat(request: ChatRequest):
     try:
-        while True:
-            prompt = input("YOU: ")
-
-            if prompt.lower() in ["exit", "quit", "bye"]:
-                print("Goodbye!")
-                break
-
-            messages.append({
-                "role": "user",
-                "content": prompt
-            })
-
-            with OpenRouter(api_key=os.getenv("OPENROUTER_API_KEY")) as client:
-
-                for _ in range(MAX_AGENT_STEPS):
-                    response = client.chat.send(
-                        models=MODELS,
-                        messages=messages,
-                        tools=tools_interface,
-                        retries=2
-                    )
-
-                    print("Model used for completion:", response.model)
-                    message = response.choices[0].message
-                    messages.append(message)
-
-                    # Final answer reached
-                    if not message.tool_calls:
-                        print("\nCHATBOT:", message.content, "\n")
-                        break
-
-                    # Execute all tool calls
-                    for tool_call in message.tool_calls:
-                        tool_name = tool_call.function.name
-                        print(f"\n[TOOL] {tool_name}")
-
-                        tool_args = json.loads(tool_call.function.arguments)
-                        print("ARGS:", tool_args)
-
-                        tool_response = TOOL_MAPPING[tool_name](**tool_args)
-                        print("RESULT:", tool_response)
-
-                        messages.append({
-                            "role": "tool",
-                            "tool_call_id": tool_call.id,
-                            "content": json.dumps(tool_response)
-                        })
-
-                else:
-                    print(
-                        f"\nAgent stopped after "
-                        f"{MAX_AGENT_STEPS} steps "
-                        f"(possible infinite loop).\n"
-                    )
-
+        result = run_agent(message=request.message, history=request.history)
+        return ChatResponse(
+            response=result["response"],
+            history=result["history"]
+        )
     except Exception as e:
-        print(f"\nERROR: {e}\n")
-        raise
-
-    finally:
-        formatted_messages = []
-
-        for msg in messages:
-            if hasattr(msg, "model_dump"):
-                formatted_messages.append(msg.model_dump())
-            else:
-                formatted_messages.append(msg)
-
-        with open("debug_messages.json", "w") as f:
-            json.dump(
-                formatted_messages,
-                f,
-                indent=4,
-                default=str
-            )
-
-        print("\n**MESSAGE HISTORY DUMPED**\n\n")
-
+        raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
-    main()
+    import uvicorn
+    # Allow running the file directly with `python main.py`
+    port = int(os.getenv("PORT", 8000))
+    uvicorn.run("main:app", host="0.0.0.0", port=port, reload=True)
