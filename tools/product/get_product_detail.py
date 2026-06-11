@@ -11,7 +11,7 @@ def get_product_detail(product_name):
     
     product_id = response["message"]
     
-    url = f"{API_URL}/product/getProduct/{product_id}"
+    url = f"{API_URL}/product/{product_id}"
     response = requests.get(url, cookies=cookies)
 
     if response.status_code != 200:

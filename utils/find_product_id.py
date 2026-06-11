@@ -4,7 +4,7 @@ import requests
 
 def find_product_id(query, threshold=60):
     print("Fetching products...\n")
-    products_url = f"{API_URL}/products/all"
+    products_url = f"{API_URL}/product/all"
 
     response = requests.get(products_url, cookies=cookies)
 

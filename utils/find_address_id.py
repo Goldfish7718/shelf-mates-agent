@@ -4,7 +4,7 @@ from rapidfuzz import process, fuzz
 import re
 
 def find_address_id(query, threshold=60):
-    url = f"{API_URL}/address/getaddresses"
+    url = f"{API_URL}/address"
     response = requests.get(url, cookies=cookies)
 
     if response.status_code != 200:

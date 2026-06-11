@@ -1,11 +1,59 @@
 import os
 from dotenv import load_dotenv
+from contextvars import ContextVar
 
 load_dotenv()
 
 API_URL = os.getenv("API_URL")
-cookies = {
-    "token": os.getenv("JWT_TOKEN")
-}
+
+# Request-scoped JWT token context variable
+request_token = ContextVar("request_token", default=None)
+
+class ContextCookies(dict):
+    def _get_current_dict(self):
+        token = request_token.get()
+        return {"token": token} if token is not None else {}
+
+    def __getitem__(self, key):
+        return self._get_current_dict()[key]
+
+    def __setitem__(self, key, value):
+        raise TypeError("ContextCookies is read-only")
+
+    def __delitem__(self, key):
+        raise TypeError("ContextCookies is read-only")
+
+    def __contains__(self, key):
+        return key in self._get_current_dict()
+
+    def __iter__(self):
+        return iter(self._get_current_dict())
+
+    def __len__(self):
+        return len(self._get_current_dict())
+
+    def keys(self):
+        return self._get_current_dict().keys()
+
+    def values(self):
+        return self._get_current_dict().values()
+
+    def items(self):
+        return self._get_current_dict().items()
+
+    def get(self, key, default=None):
+        return self._get_current_dict().get(key, default)
+
+    def __str__(self):
+        return str(self._get_current_dict())
+
+    def __repr__(self):
+        return repr(self._get_current_dict())
+
+    def copy(self):
+        return self._get_current_dict().copy()
+
+cookies = ContextCookies()
 
 MODELS = ["openai/gpt-oss-120b:free", "z-ai/glm-4.5-air:free"]
+

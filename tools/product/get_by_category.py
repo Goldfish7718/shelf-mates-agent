@@ -2,7 +2,7 @@ import requests
 from config import API_URL, cookies
 
 def get_by_category(category="fruits"):
-    url = f"{API_URL}/product/getByCat/{category}"
+    url = f"{API_URL}/product/category/{category}"
 
     response = requests.get(url, cookies=cookies)
 

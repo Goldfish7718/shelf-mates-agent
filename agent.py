@@ -56,7 +56,7 @@ TOOL_MAPPING = {
     "place_order": order.place_order
 }
 
-def run_agent_stream(message: str, history: list = None):
+def _run_agent_stream(message: str, history: list = None):
     """
     Executes the e-commerce grocery agent and yields event dictionaries during execution.
     Yields events:
@@ -253,11 +253,20 @@ def run_agent_stream(message: str, history: list = None):
         }
 
 
-def run_agent(message: str, history: list = None) -> dict:
+def run_agent_stream(message: str, history: list = None, token: str = None):
+    from config import request_token
+    token_token = request_token.set(token)
+    try:
+        yield from _run_agent_stream(message, history)
+    finally:
+        request_token.reset(token_token)
+
+
+def run_agent(message: str, history: list = None, token: str = None) -> dict:
     """
     Synchronous wrapper for run_agent_stream to keep compatibility with existing non-streaming consumers.
     """
-    stream = run_agent_stream(message, history)
+    stream = run_agent_stream(message, history, token=token)
     result = None
     for event in stream:
         if event["type"] == "done":

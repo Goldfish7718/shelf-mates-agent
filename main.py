@@ -1,6 +1,6 @@
 import os
 import json
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
@@ -39,9 +39,12 @@ def read_root():
     }
 
 @app.post("/chat", response_model=ChatResponse)
-async def chat(request: ChatRequest):
+async def chat(chat_request: ChatRequest, request: Request):
+    token = request.cookies.get("token")
+    if not token:
+        raise HTTPException(status_code=401, detail="Unauthorized: JWT token not found in cookies")
     try:
-        result = run_agent(message=request.message, history=request.history)
+        result = run_agent(message=chat_request.message, history=chat_request.history, token=token)
         return ChatResponse(
             response=result["response"],
             history=result["history"]
@@ -50,10 +53,14 @@ async def chat(request: ChatRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/chat/stream")
-async def chat_stream(request: ChatRequest):
+async def chat_stream(chat_request: ChatRequest, request: Request):
+    token = request.cookies.get("token")
+    if not token:
+        raise HTTPException(status_code=401, detail="Unauthorized: JWT token not found in cookies")
+
     def event_generator():
         try:
-            stream = run_agent_stream(message=request.message, history=request.history)
+            stream = run_agent_stream(message=chat_request.message, history=chat_request.history, token=token)
             for event in stream:
                 # Format chunk as a Server-Sent Event (SSE)
                 yield f"data: {json.dumps(event)}\n\n"
