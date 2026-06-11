@@ -2,7 +2,7 @@ import requests
 from config import cookies, API_URL
 
 def delete_address(address_id):
-    url = f"{API_URL}/address/deleteaddress/{address_id}"
+    url = f"{API_URL}/address/{address_id}"
     response = requests.delete(url, cookies=cookies)
 
     response = response.json()

@@ -2,7 +2,7 @@ import requests
 from config import API_URL, cookies
 
 def get_addresses():
-    url = f"{API_URL}/address/getaddresses"
+    url = f"{API_URL}/address"
     response = requests.get(url, cookies=cookies)
 
     response = response.json()

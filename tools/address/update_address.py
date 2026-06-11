@@ -12,7 +12,7 @@ address = {
 }
 
 def update_address(address=address):
-    url = f"{API_URL}/address/updateaddress"
+    url = f"{API_URL}/address"
     response = requests.put(url, cookies=cookies, json={ "address": address })
 
     response = response.json()

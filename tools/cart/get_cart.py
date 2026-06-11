@@ -3,7 +3,7 @@ from config import API_URL, cookies
 
 def get_cart():
     print("Fetching Cart...\n")
-    url = f"{API_URL}/cart/getCart"
+    url = f"{API_URL}/cart"
 
     response = requests.get(url, cookies=cookies)
     

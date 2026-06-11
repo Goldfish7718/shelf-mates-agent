@@ -25,9 +25,9 @@ def add_to_cart(products):
     print("Adding to Cart...\n")
     for product in final_products:
         for _ in range(0, product["quantity"]):
-            add_to_cart_url = f"{API_URL}/cart/add/{product['product_id']}"
+            add_to_cart_url = f"{API_URL}/cart/increment/{product['product_id']}"
 
-            response = requests.post(add_to_cart_url, cookies=cookies)
+            response = requests.patch(add_to_cart_url, cookies=cookies)
 
             data = response.json()
 

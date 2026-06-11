@@ -29,7 +29,7 @@ def decrement_quantity(products):
     for product in final_products:
         for _ in range(0, int(product["quantity"])):
             url = f"{API_URL}/cart/decrement/{product['product_id']}"
-            response = requests.post(url, cookies=cookies, json=payload)
+            response = requests.patch(url, cookies=cookies, json=payload)
 
             data = response.json()
 

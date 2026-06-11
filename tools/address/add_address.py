@@ -2,7 +2,7 @@ import requests
 from config import API_URL, cookies
 
 def add_address(address):
-    url = f"{API_URL}/address/addaddress"
+    url = f"{API_URL}/address"
     response = requests.post(url, cookies=cookies, json=address)
 
     response = response.json()
