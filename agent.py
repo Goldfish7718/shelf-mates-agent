@@ -253,13 +253,26 @@ def _run_agent_stream(message: str, history: list = None):
         }
 
 
+class ContextVarIterator:
+    def __init__(self, generator, token):
+        self.generator = generator
+        self.token = token
+
+    def __next__(self):
+        from config import request_token
+        token_token = request_token.set(self.token)
+        try:
+            return next(self.generator)
+        finally:
+            request_token.reset(token_token)
+
+    def __iter__(self):
+        return self
+
+
 def run_agent_stream(message: str, history: list = None, token: str = None):
-    from config import request_token
-    token_token = request_token.set(token)
-    try:
-        yield from _run_agent_stream(message, history)
-    finally:
-        request_token.reset(token_token)
+    generator = _run_agent_stream(message, history)
+    return ContextVarIterator(generator, token)
 
 
 def run_agent(message: str, history: list = None, token: str = None) -> dict:
