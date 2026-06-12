@@ -6,6 +6,7 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from typing import List, Optional, Dict, Any
 from agent import run_agent, run_agent_stream
+from dotenv import load_dotenv
 
 app = FastAPI(
     title="Shelf-mates AI API",
@@ -15,7 +16,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=[os.getenv("ORIGIN")],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
