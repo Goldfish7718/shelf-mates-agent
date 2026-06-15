@@ -1,6 +1,8 @@
 import os
 from dotenv import load_dotenv
 from contextvars import ContextVar
+import requests
+import requests.api
 
 load_dotenv()
 
@@ -8,6 +10,31 @@ API_URL = os.getenv("API_URL")
 
 # Request-scoped JWT token context variable
 request_token = ContextVar("request_token", default=None)
+
+# Monkey patch requests to strip cookies and inject token as X-Auth header
+original_request = requests.api.request
+
+def patched_request(method, url, **kwargs):
+    # Remove cookies from kwargs to prevent sending cookies
+    kwargs.pop("cookies", None)
+    
+    if API_URL and url.startswith(API_URL):
+        token = request_token.get()
+        if token:
+            headers = kwargs.get("headers", {})
+            if headers is None:
+                headers = {}
+            else:
+                headers = headers.copy()
+            headers["X-Auth-Token"] = token
+            headers["X-Auth-Header"] = token
+            kwargs["headers"] = headers
+            
+    return original_request(method, url, **kwargs)
+
+requests.request = patched_request
+requests.api.request = patched_request
+
 
 class ContextCookies(dict):
     def _get_current_dict(self):

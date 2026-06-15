@@ -40,9 +40,13 @@ def read_root():
 
 @app.post("/chat", response_model=ChatResponse)
 async def chat(chat_request: ChatRequest, request: Request):
+    print("--- AUTHENTICATION DEBUG (/chat) ---")
+
     token = request.cookies.get("token")
+    print(f"Token from cookies: {token}")
+        
     if not token:
-        raise HTTPException(status_code=401, detail="Unauthorized: JWT token not found in cookies")
+        raise HTTPException(status_code=401, detail="Unauthorized: JWT token not found")
     try:
         result = run_agent(message=chat_request.message, history=chat_request.history, token=token)
         return ChatResponse(
@@ -54,9 +58,13 @@ async def chat(chat_request: ChatRequest, request: Request):
 
 @app.post("/chat/stream")
 async def chat_stream(chat_request: ChatRequest, request: Request):
+    print("--- AUTHENTICATION DEBUG (/chat/stream) ---")
+
     token = request.cookies.get("token")
+    print(f"Cookie token: {token}")
+
     if not token:
-        raise HTTPException(status_code=401, detail="Unauthorized: JWT token not found in cookies")
+        raise HTTPException(status_code=401, detail="Unauthorized: JWT token not found")
 
     def event_generator():
         try:
