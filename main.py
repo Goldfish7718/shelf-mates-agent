@@ -25,7 +25,6 @@ app.add_middleware(
 class ChatRequest(BaseModel):
     message: str
     history: Optional[List[Dict[str, Any]]] = None
-    token: str
 
 class ChatResponse(BaseModel):
     response: str
@@ -61,8 +60,8 @@ async def chat(chat_request: ChatRequest, request: Request):
 async def chat_stream(chat_request: ChatRequest, request: Request):
     print("--- AUTHENTICATION DEBUG (/chat/stream) ---")
 
-    token = chat_request.token
-    print(f"Body token: {token}")
+    token = request.cookies.get("token")
+    print(f"Token from cookies: {token}")
 
     if not token:
         raise HTTPException(status_code=401, detail="Unauthorized: JWT token not found")
