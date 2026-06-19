@@ -56,6 +56,46 @@ TOOL_MAPPING = {
     "place_order": order.place_order
 }
 
+def get_loading_phrase(tool_name: str, tool_args: dict) -> str:
+    match tool_name:
+        case "get_products_by_category":
+            category = tool_args.get("category", "products")
+            return f"Searching for products in category: {category}..."
+        case "get_product_detail":
+            product_name = tool_args.get("product_name", "product")
+            return f"Looking up details for '{product_name}'..."
+        case "add_to_cart":
+            products = tool_args.get("products", [])
+            if len(products) == 1:
+                p = products[0]
+                return f"Adding {p.get('quantity', 1)} {p.get('name', 'product')}(s) to your cart..."
+            elif len(products) > 1:
+                return f"Adding {len(products)} items to your cart..."
+            return "Adding items to your cart..."
+        case "get_cart":
+            return "Retrieving your cart items..."
+        case "decrement_quantity":
+            products = tool_args.get("products", [])
+            if len(products) == 1:
+                p = products[0]
+                return f"Removing {p.get('quantity', 1)} {p.get('name', 'product')}(s) from your cart..."
+            elif len(products) > 1:
+                return f"Removing items from your cart..."
+            return "Updating cart items..."
+        case "add_address":
+            return "Saving new delivery address..."
+        case "get_addresses":
+            return "Retrieving your delivery addresses..."
+        case "update_address":
+            return "Updating your delivery address..."
+        case "delete_address":
+            return "Deleting address from your profile..."
+        case "place_order":
+            payment_method = tool_args.get("payment_method", "selected payment method")
+            return f"Placing your order using {payment_method}..."
+        case _:
+            return "Executing task..."
+
 def _run_agent_stream(message: str, history: list = None):
     """
     Executes the e-commerce grocery agent and yields event dictionaries during execution.
@@ -174,18 +214,19 @@ def _run_agent_stream(message: str, history: list = None):
                         tool_args_str = tc["arguments"]
                         tool_id = tc["id"]
 
-                        yield {
-                            "type": "tool_execute_start",
-                            "name": tool_name,
-                            "arguments": tool_args_str
-                        }
-
-                        # Parse arguments and execute
+                        # Parse arguments first to generate a contextual step message
                         try:
                             tool_args = json.loads(tool_args_str) if tool_args_str else {}
                         except Exception as e:
                             tool_args = {}
                             print(f"Failed to parse tool arguments: {e}")
+
+                        yield {
+                            "type": "tool_execute_start",
+                            "name": tool_name,
+                            "arguments": tool_args_str,
+                            "step": get_loading_phrase(tool_name, tool_args)
+                        }
 
                         if tool_name in TOOL_MAPPING:
                             try:
