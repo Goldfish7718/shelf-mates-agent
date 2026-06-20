@@ -6,7 +6,14 @@ def get_addresses():
     response = requests.get(url, cookies=cookies)
 
     response = response.json()
-    return response["addresses"]
+    
+    EXCLUDED_FIELDS = {"_id", "userId", "__v"}
+    addresses = [
+        {k: v for k, v in addr.items() if k not in EXCLUDED_FIELDS}
+        for addr in response.get("addresses", [])
+    ]
+
+    return addresses
 
 get_addresses_interface = {
     "type": "function",
