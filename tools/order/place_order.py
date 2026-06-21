@@ -75,7 +75,7 @@ place_order_interface = {
             },
             "required": [
                 "payment_method",
-                "address_id"
+                "address"
             ]
         }
     }

@@ -5,6 +5,9 @@ def get_addresses():
     url = f"{API_URL}/address"
     response = requests.get(url, cookies=cookies)
 
+    if response.status_code != 200:
+        return response.json()["message"]
+
     response = response.json()
     
     EXCLUDED_FIELDS = {"_id", "userId", "__v"}

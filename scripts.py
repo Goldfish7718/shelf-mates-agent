@@ -104,8 +104,8 @@ match choice:
         print_result(res)
 
     case 9:
-        address_id = input("Address ID [6a1f17c8debb1232f56fe6ca]: ") or "6a1f17c8debb1232f56fe6ca"
-        res = delete_address(address_id)
+        address = input("Address to delete [123 main st, near park, nashik, maharashtra]: ") or "123 main st, near park, nashik, maharashtra"
+        res = delete_address(address)
         print_result(res)
 
     case 10:

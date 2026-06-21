@@ -5,6 +5,9 @@ def add_address(address):
     url = f"{API_URL}/address"
     response = requests.post(url, cookies=cookies, json=address)
 
+    if response.status_code != 200:
+        return response.json()["message"]
+
     response = response.json()
     return response["message"]
 

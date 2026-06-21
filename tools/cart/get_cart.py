@@ -8,7 +8,7 @@ def get_cart():
     response = requests.get(url, cookies=cookies)
     
     if response.status_code != 200:
-                return response.json()["message"]
+        return response.json()["message"]
 
     data = response.json()
 

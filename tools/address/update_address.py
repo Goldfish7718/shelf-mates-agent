@@ -15,6 +15,9 @@ def update_address(address=address):
     url = f"{API_URL}/address"
     response = requests.put(url, cookies=cookies, json={ "address": address })
 
+    if response.status_code != 200:
+        return response.json()["message"]
+
     response = response.json()
     return response["message"]
 
