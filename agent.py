@@ -225,6 +225,8 @@ def _run_agent_stream(message: str, history: list = None):
 
                 # Execute tool calls if any, then loop back
                 if active_tool_calls:
+                    skip_generation = False
+                    skip_response = ""
                     for tc in active_tool_calls.values():
                         tool_name = tc["name"]
                         tool_args_str = tc["arguments"]
@@ -264,6 +266,22 @@ def _run_agent_stream(message: str, history: list = None):
                             "tool_call_id": tool_id,
                             "content": json.dumps(tool_response)
                         })
+
+                        if tool_name == "place_order" and tool_args.get("payment_method", "").lower() == "card":
+                            skip_generation = True
+                            skip_response = tool_response
+
+                    if skip_generation:
+                        yield {
+                            "type": "content",
+                            "delta": skip_response
+                        }
+                        messages.append({
+                            "role": "assistant",
+                            "content": skip_response
+                        })
+                        final_response = skip_response
+                        break
                 else:
                     # Final text response finished generating
                     final_response = accumulated_content

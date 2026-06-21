@@ -42,7 +42,7 @@ def place_order(payment_method, address):
         return final_response["message"]
 
     else:
-        return f"Card Payments cannot be completed here. Please click this link to open the payment page. {response_1['url']}"
+        return f"Card Payments cannot be completed here. Please [Click here to complete payment]({response_1['url']})"
     
 place_order_interface = {
     "type": "function",
