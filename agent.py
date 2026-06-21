@@ -1,7 +1,7 @@
 import os
 import json
 from openrouter import OpenRouter
-from tools import product, cart, address, order
+from tools import product, cart, address, order, review
 from config import MODELS
 
 MAX_AGENT_STEPS = 20
@@ -35,7 +35,11 @@ tools_interface = [
     address.delete_address_interface,
 
     # ORDER OPS
-    order.place_order_interface
+    order.place_order_interface,
+
+    # REVIEW OPS
+    review.add_review_interface,
+    review.get_reviews_interface
 ]
 
 TOOL_MAPPING = {
@@ -55,7 +59,11 @@ TOOL_MAPPING = {
     "delete_address": address.delete_address,
 
     # ORDER OPS
-    "place_order": order.place_order
+    "place_order": order.place_order,
+
+    # REVIEWS
+    "add_review": review.add_review,
+    "get_reviews": review.get_reviews
 }
 
 def get_loading_phrase(tool_name: str, tool_args: dict) -> str:
@@ -95,6 +103,12 @@ def get_loading_phrase(tool_name: str, tool_args: dict) -> str:
         case "place_order":
             payment_method = tool_args.get("payment_method", "selected payment method")
             return f"Placing your order using {payment_method}..."
+        case "add_review":
+            product_name = tool_args.get("product_name", "product")
+            return f"Adding review for '{product_name}'..."
+        case "get_reviews":
+            product_name = tool_args.get("product_name", "product")
+            return f"Retrieving reviews for '{product_name}'..."
         case _:
             return "Executing task..."
 

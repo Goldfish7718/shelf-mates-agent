@@ -4,6 +4,7 @@ from tools.product import get_by_category, get_product_detail
 from tools.cart import add_to_cart, get_cart, decrement_quantity
 from tools.address import add_address, get_addresses, update_address, delete_address
 from tools.order import place_order
+from tools.review import add_review, get_reviews
 from utils import find_product_id, find_address_id
 
 load_dotenv()
@@ -22,6 +23,8 @@ message = (
     "10. place_order\n"
     "11. find_product_id\n"
     "12. find_address_id\n"
+    "13. add_review\n"
+    "14. get_reviews\n"
     "Selection: "
 )
 
@@ -122,6 +125,18 @@ match choice:
     case 12:
         query = input("Search query [Home]: ") or "Home"
         res = find_address_id(query=query)
+        print_result(res)
+
+    case 13:
+        product_name = input("Product Name [apple]: ") or "apple"
+        review_text = input("Review text [Great product!]: ") or "Great product!"
+        stars = input("Stars [5]: ") or "5"
+        res = add_review(product_name, review_text, stars)
+        print_result(res)
+
+    case 14:
+        product_name = input("Product Name [apple]: ") or "apple"
+        res = get_reviews(product_name)
         print_result(res)
 
     case _:
