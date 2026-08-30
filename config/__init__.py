@@ -82,5 +82,5 @@ class ContextCookies(dict):
 
 cookies = ContextCookies()
 
-MODELS = ["openai/gpt-oss-120b:free", "z-ai/glm-4.5-air:free"]
+MODELS = ["nvidia/nemotron-3.5-lightning:free"]
 
